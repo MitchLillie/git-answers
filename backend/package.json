@@ -11,7 +11,11 @@
   "dependencies": {
     "express": "^4.15.3",
     "fs-extra": "^3.0.1",
+    "gitlab": "^1.7.1",
     "nodegit": "^0.18.3",
     "promisify": "0.0.3"
+  },
+  "devDependencies": {
+    "nodemon": "^1.11.0"
   }
 }
