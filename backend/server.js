@@ -8,7 +8,7 @@ const express = require('express')
 const fse = promisify(require('fs-extra'))
 fse.ensureDir = promisify(fse.ensureDir)
 const gitlab = require('gitlab')({
-  url: 'http://172.17.0.4',
+  url: GITLAB_URL,
   token: 'HtZjA6YjYjx85V1Vs8MV'
 })
 const nodegit = require('nodegit')
