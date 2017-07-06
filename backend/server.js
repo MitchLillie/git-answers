@@ -12,6 +12,7 @@ const gitlab = require('gitlab')({
   url:   'http://172.17.0.4',
   token: 'HtZjA6YjYjx85V1Vs8MV'
 });
+const winston = require('winston')
 
 // Constants
 const PORT = 8888;
@@ -25,7 +26,6 @@ var remote;
 // App
 const app = express();
 app.get('/', function (req, res) {
-  console.log(process.env);
   res.send('Hello worlds!\nIt can\'t be!');
 });
 
@@ -84,16 +84,16 @@ app.get('/repos/:id', function (req, res) {
       return repository.createCommit("HEAD", author, committer, "message", oid, []);
     })
     .then(function() {
-      console.log('committed')
+      winston.debug('committed')
       return nodegit.Remote.create(repository, "origin",
         `git@${GITLAB_URL}:root/${id}.git`)
       .then(function(remoteResult) {
-        console.log('remote created')
+        winston.debug('remote created')
         remote = remoteResult;
 
         return new Promise(function(resolve, reject) {
           gitlab.projects.create({ name: `${id}`}, function (res) {
-            console.log(res);
+            winston.debug('Created project: ', res);
             // Create the push object for this remote
             remote.push(
               ["refs/heads/master:refs/heads/master"],
@@ -113,13 +113,14 @@ app.get('/repos/:id', function (req, res) {
       });
     })
     .catch(err => {
-      console.log(err)
+      winston.error(err)
     })
     .done(function() {
-      console.log("Done!");
+      winston.debug("Done!");
     });
 
 })
 
 app.listen(PORT, HOST);
-console.log('Running on http://' + HOST + ':' + PORT);
+winston.info('Running on http://' + HOST + ':' + PORT);
+winston.debug('Listening with environment vars: ', process.env);
