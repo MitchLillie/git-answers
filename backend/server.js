@@ -1,11 +1,17 @@
 'use strict';
 
+const GITLAB_URL = process.env.GITLAB_PORT_80_TCP_ADDR || 'http://localhost'
+
 const express = require('express');
 const nodegit = require('nodegit');
 var promisify = require("promisify-node")
 const fse = promisify(require('fs-extra'))
 const path = require('path')
 fse.ensureDir = promisify(fse.ensureDir);
+const gitlab = require('gitlab')({
+  url:   'http://172.17.0.4',
+  token: 'HtZjA6YjYjx85V1Vs8MV'
+});
 
 // Constants
 const PORT = 8888;
@@ -19,15 +25,32 @@ var remote;
 // App
 const app = express();
 app.get('/', function (req, res) {
-  res.send('Hello world\n');
+  console.log(process.env);
+  res.send('Hello worlds!\nIt can\'t be!');
 });
+
+app.get('/testing', function (req, res) {
+
+  // gitlab.users.all(function(users) {
+  //   for (var i = 0; i < users.length; i++) {
+  //     console.log("#" + users[i].id + ": " + users[i].email + ", " + users[i].name + ", " + users[i].created_at);
+  //   }
+  // });
+})
 
 app.get('/repos/:id', function (req, res) {
   let id = req.params.id
   let tmpRepoPath = path.resolve(TMP_DIR, id)
-  console.log(tmpRepoPath);
 
   fse.ensureDir(tmpRepoPath)
+    .then(function() {
+      return nodegit.Config.openDefault().then(function (config) {
+        return Promise.all([
+          config.setString('user.name', 'Administrator'),
+          config.setString('user.email', 'admin@example.com')
+        ])
+      })
+    })
     .then(function() {
       return nodegit.Repository.init(tmpRepoPath, 0);
     })
@@ -63,25 +86,30 @@ app.get('/repos/:id', function (req, res) {
     .then(function() {
       console.log('committed')
       return nodegit.Remote.create(repository, "origin",
-        `git@github.com:MitchLillie/something.git`)
+        `git@${GITLAB_URL}:root/${id}.git`)
       .then(function(remoteResult) {
         console.log('remote created')
         remote = remoteResult;
 
-        // TODO: Create the repo itself
-
-        // Create the push object for this remote
-        return remote.push(
-          ["refs/heads/master:refs/heads/master"],
-          {
-            callbacks: {
-              certificateCheck: function() { return 1; },
-              credentials: function(url, userName) {
-                return nodegit.Cred.sshKeyFromAgent(userName);
+        return new Promise(function(resolve, reject) {
+          gitlab.projects.create({ name: `${id}`}, function (res) {
+            console.log(res);
+            // Create the push object for this remote
+            remote.push(
+              ["refs/heads/master:refs/heads/master"],
+              {
+                callbacks: {
+                  certificateCheck: function() { return 1; },
+                  credentials: function(url, userName) {
+                    return nodegit.Cred.sshKeyNew(userName, '/root/.ssh/id_rsa.pub', '/root/.ssh/id_rsa', '');
+                  }
+                }
               }
-            }
-          }
-        );
+            ).then(resolve).catch(reject);
+          })
+        });
+
+
       });
     })
     .catch(err => {
