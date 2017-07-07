@@ -30,6 +30,57 @@ app.get('/', function (req, res) {
   res.send('Hello worlds!\nIt can\'t be!')
 })
 
+
+// Get all questions
+app.get('/questions', function (req, res) {
+  // Retrieve all projects
+  // Render names & metadata
+})
+
+// Get specific question
+app.get('/question/:id', function (req, res) {
+  // Retrieve project based on id
+  // Render content, name and metadata
+})
+
+// Get specific proposal
+app.get('/question/:id/proposal/:pid', function (req, res) {
+  // Retrieve proposal based on pid
+  // Render content, name and metadata
+})
+
+// Get history of edits (TODO: blame, etc)
+app.get('/question/:id/history', function (req, res) {
+  // Retrieve commits for project based on id
+  // Render name & list of commits
+})
+
+// Add a new question
+app.post('/question', function (req, res) {
+  // Check if id exists
+  // Write data to file
+  // Add file
+  // Commit file
+  // Create remote repo
+  // Add remote repo as git-remote
+  // Push to remote
+  // Delete tmp repo
+  // Confirm completion (redirect to question page)
+})
+
+
+// Edit/approve/delete a new proposal to a question
+app.post('/questions/:id/propose', function (req, res) {
+  // Extract action from POST
+  // Ensure repo is level with origin/master
+  // Checkout new branch with uid
+  // Edit file locally
+  // Add & commit file
+  // Push to repo
+  // Render latest diff from branch to master
+  // Delete tmp repo
+})
+
 app.get('/repos/:id', function (req, res) {
   let id = req.params.id
   let tmpRepoPath = path.resolve(TMP_DIR, id)
